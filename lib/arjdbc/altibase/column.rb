@@ -22,6 +22,9 @@ module ArJdbc
             integer:  4,
             smallint: 5,
 
+            # Also using integer for Rails primary key
+            primary_key: 4,
+
             # Date/Time
             date:     9,
 
