@@ -38,7 +38,7 @@ module ArJdbc
 
     def modify_types(types)
       super(types)
-      types[:primary_key] = { :name => 'INTEGER' }
+      types[:primary_key] = { :name => 'INTEGER PRIMARY KEY' }
       types[:string]      = { :name => 'VARCHAR', :limit => 255 }
       types[:integer]     = { :name => 'INTEGER' }
       types[:float]       = { :name => 'FLOAT' }
@@ -101,8 +101,23 @@ module ArJdbc
     def select_columns(table_name)
       exec_query <<-SQL
         SELECT * FROM system_.sys_columns_ WHERE table_id
-          IN (SELECT table_id FROM system_.sys_tables_ WHERE table_name = '#{table_name.to_s.upcase}')
+          IN (#{sql_for_sys_table table_name})
       SQL
+    end
+
+    # Answer a result set where each row is a trigger selected from the Altibase system_.sys_triggers_ table.
+    # @param table_name String name of the table of the columns to retrieve.
+    def select_triggers(table_name)
+      exec_query <<-SQL
+        SELECT * FROM system_.sys_triggers_ WHERE table_id
+          IN (#{sql_for_sys_table table_name})
+      SQL
+    end
+
+    # Answer a string SQL for selecting the specified from the Altibase system_.sys_tables_ table.
+    # @param table_name String name of the table of the columns to retrieve.
+    def sql_for_sys_table(table_name)
+      "SELECT table_id FROM system_.sys_tables_ WHERE table_name = '#{table_name.to_s.upcase}'"
     end
 
   end
