@@ -43,9 +43,9 @@ module ArJdbc
       types[:integer]     = { :name => 'INTEGER' }
       types[:float]       = { :name => 'FLOAT' }
       types[:decimal]     = { :name => 'DECIMAL' }
-      types[:datetime]    = { :name => 'DATETIME YEAR TO FRACTION(5)' }
-      types[:timestamp]   = { :name => 'DATETIME YEAR TO FRACTION(5)' }
-      types[:time]        = { :name => 'DATETIME HOUR TO FRACTION(5)' }
+      types[:datetime]    = { :name => 'DATE' }
+      types[:timestamp]   = { :name => 'DATE' }
+      types[:time]        = { :name => 'DATE' }
       types[:date]        = { :name => 'DATE' }
       types[:binary]      = { :name => 'BYTE' }
       types[:boolean]     = { :name => 'BOOLEAN' }
