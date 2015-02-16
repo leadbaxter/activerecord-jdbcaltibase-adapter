@@ -71,6 +71,19 @@ module ArJdbc
         end
       end
 
+      def add_primary_key_fields(table_name)
+        name = table_name.to_s.singularize
+        reversible do |dir|
+          dir.up do
+            add_primary_key name
+          end
+
+          dir.down do
+            drop_primary_key name
+          end
+        end
+      end
+
       def add_primary_key(name)
         add_sequence name
         add_procedure name
