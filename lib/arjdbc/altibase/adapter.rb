@@ -17,7 +17,7 @@ module ArJdbc
       end
 
       def drop_sequence_sql(name)
-        "DROP SEQUENCE #{username}.SEQ_#{name}_ID;"
+        "DROP SEQUENCE #{username}.SEQ_#{name.upcase}_ID;"
       end
 
       def procedure_sql(name)
