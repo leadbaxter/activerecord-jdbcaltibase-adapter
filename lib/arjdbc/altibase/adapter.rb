@@ -1,6 +1,89 @@
 module ArJdbc
   module Altibase
 
+    module SequencerSql
+      def username
+        config[:username]
+      end
+
+      def sequence_sql(name)
+        <<-SQL
+          CREATE SEQUENCE #{username}.SEQ_#{name.upcase}_ID
+          START WITH 1
+          MINVALUE 1
+          MAXVALUE 268435455
+          CYCLE;
+        SQL
+      end
+
+      def drop_sequence_sql(name)
+        "DROP SEQUENCE #{username}.SEQ_#{name}_ID;"
+      end
+
+      def procedure_sql(name)
+        <<-SQL
+          CREATE OR REPLACE PROCEDURE #{username}.AUTO_#{name.upcase}_ID(fld OUT NUMBER) IS
+          BEGIN
+          SELECT SEQ_#{name.upcase}_ID.NEXTVAL INTO FLD FROM DUAL;
+          END AUTO_#{name.upcase}_ID;
+        SQL
+      end
+
+      def drop_procedure_sql(name)
+        "DROP PROCEDURE #{username}.AUTO_#{name.upcase}_ID;"
+      end
+
+      def trigger_sql(name)
+        <<-SQL
+          CREATE OR REPLACE TRIGGER #{username}.#{name.upcase}_ID_TGR
+          BEFORE INSERT ON #{username}.#{name.pluralize.upcase}
+          REFERENCING NEW ROW AS NEW_ROW
+          FOR EACH ROW
+          AS
+          BEGIN
+          AUTO_#{name.upcase}_ID(NEW_ROW.ID);
+          END;
+        SQL
+      end
+
+      def drop_trigger_sql(name)
+        "DROP TRIGGER #{username}.#{name.upcase}_ID_TGR;"
+      end
+
+    end
+
+    # @todo - move to a better location for reuse
+    module PrimaryKeyMigration
+      def method_missing(method, *arguments, &block)
+        if /(add|drop)_(sequence|procedure|trigger)/.match method
+          name = arguments[0]
+          tag = {
+              sequence:  "seq_#{name}_id",
+              procedure: "auto_#{name}_id",
+              trigger:   "#{name}_id_tgr"
+          }[$2.to_sym]
+          prefix, message = $1 == 'add' ? ['adding', ''] : %w(dropping drop_)
+          say "#{prefix} #{$2}: #{tag}"
+          sql = raw_connection.send "#{message}#{$2}_sql", name
+          execute sql
+        else
+          super
+        end
+      end
+
+      def add_primary_key(name)
+        add_sequence name
+        add_procedure name
+        add_trigger name
+      end
+
+      def drop_primary_key(name)
+        begin drop_sequence  name; rescue; say 'ok - did not exist'; end
+        begin drop_trigger   name; rescue; say 'ok - did not exist'; end
+        begin drop_procedure name; rescue; say 'ok - did not exist'; end
+      end
+    end
+
     def self.jdbc_connection_class
       ::ActiveRecord::ConnectionAdapters::AltibaseJdbcConnection
     end
