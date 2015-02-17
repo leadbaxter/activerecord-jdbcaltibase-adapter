@@ -86,14 +86,14 @@ module ArJdbc
 
       def add_primary_key(name)
         add_sequence name
-        add_procedure name
-        add_trigger name
+        #add_procedure name
+        #add_trigger name
       end
 
       def drop_primary_key(name)
         begin drop_sequence  name; rescue; say 'ok - did not exist'; end
-        begin drop_trigger   name; rescue; say 'ok - did not exist'; end
-        begin drop_procedure name; rescue; say 'ok - did not exist'; end
+        #begin drop_trigger   name; rescue; say 'ok - did not exist'; end
+        #begin drop_procedure name; rescue; say 'ok - did not exist'; end
       end
     end
 
@@ -121,6 +121,15 @@ module ArJdbc
     # @see activerecord-jdbc-adapter-{version}/lib/arjdbc/jdbc/adapter.rb:581
     def table_exists?(table_name)
       table_name.present? && @connection.tables.include?(table_name.to_s.downcase)
+    end
+
+    def prefetch_primary_key?(table_name)
+      true
+    end
+
+    def next_sequence_value(sequence_name)
+      result_set = exec_query "SELECT #{sequence_name}.nextVal FROM DUAL"
+      result_set[0]["#{sequence_name.to_s.downcase}.nextval"]
     end
 
     # @see activerecord-jdbc-adapter-{version}/lib/arjdbc/jdbc/adapter.rb:321
