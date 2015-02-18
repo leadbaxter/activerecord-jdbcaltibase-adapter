@@ -22,10 +22,6 @@ module ActiveRecord
       ::ArJdbc::Altibase.jdbc_connection_class
     end
 
-    def jdbc_column_class
-      ::ActiveRecord::ConnectionAdapters::AltibaseColumn
-    end
-
     class AltibaseColumn < JdbcColumn # :nodoc:
 
       # Maps Altibase-specific data types to logical Rails types.
@@ -52,6 +48,15 @@ module ActiveRecord
       def initialize(*args)
         @quoted_tables, @quoted_columns = {}, {}
         super # configure_connection happens in super
+      end
+
+      def setup_connection_factory
+        super
+        puts "Altibase database version: #{connection.database_version}"
+      end
+
+      def rollback_database
+        adapter.rollback_database
       end
 
       # Quotes the column name.

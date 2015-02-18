@@ -15,6 +15,10 @@ module ArJdbc
       "there are now #{tables.count} tables, expected 33"
     end
 
+    def jdbc_column_class
+      ::ActiveRecord::ConnectionAdapters::AltibaseColumn
+    end
+
     # Quotes the column name. Defaults to no quoting.
     def quote_column_name(name)
       @connection.quote_column_name name
