@@ -1,5 +1,6 @@
 module ActiveRecord
   module ConnectionAdapters
+
     class AltibaseAdapter < JdbcAdapter
 
       include ArJdbc::Altibase
@@ -8,6 +9,28 @@ module ActiveRecord
         super # configure_connection happens in super
       end
 
+      ADAPTER_NAME = 'Altibase'.freeze
+
+      # @override
+      def adapter_name
+        ADAPTER_NAME
+      end
+
+    end
+
+    def jdbc_connection_class(spec)
+      ::ArJdbc::Altibase.jdbc_connection_class
+    end
+
+    def jdbc_column_class
+      ::ActiveRecord::ConnectionAdapters::AltibaseColumn
+    end
+
+    def rollback_database
+      begin @connection.execute_query 'DROP TABLE schema_migrations'; rescue; end
+      begin @connection.execute_query 'DROP TABLE users'; rescue; end
+      begin @connection.execute_query 'DROP SEQUENCE SEQ_USER_ID'; rescue; end
+      "there are now #{tables.count} tables, expected 33"
     end
 
     class AltibaseColumn < JdbcColumn # :nodoc:
@@ -67,15 +90,6 @@ module ActiveRecord
         execute "DROP INDEX #{quote_column_name(index_name)}"
       end
     end
-
-    def jdbc_connection_class(spec)
-      ::ArJdbc::Altibase.jdbc_connection_class
-    end
-
-    def jdbc_column_class
-      AltibaseColumn
-    end
-
 
   end
 end

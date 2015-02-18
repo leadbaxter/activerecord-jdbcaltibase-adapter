@@ -1,22 +1,11 @@
 module ArJdbc
   module Altibase
-    def self.jdbc_connection_class
-      ::ActiveRecord::ConnectionAdapters::AltibaseJdbcConnection
-    end
-
-    def jdbc_column_class
-      ::ActiveRecord::ConnectionAdapters::AltibaseColumn
-    end
-
     def self.included(obj)
       Date::DATE_FORMATS[:db] = '%Y-%m-%d %H:%M:%S'
     end
 
-    def clean_db
-      begin @connection.execute_query 'DROP TABLE schema_migrations'; rescue; end
-      begin @connection.execute_query 'DROP TABLE users'; rescue; end
-      begin @connection.execute_query 'DROP SEQUENCE SEQ_USER_ID'; rescue; end
-      "there are now #{tables.count} tables, expected 33"
+    def self.jdbc_connection_class
+      ::ActiveRecord::ConnectionAdapters::AltibaseJdbcConnection
     end
 
     # Quotes the column name. Defaults to no quoting.
@@ -60,15 +49,6 @@ module ArJdbc
       super(types)
       types[:primary_key] = { :name => 'INTEGER PRIMARY KEY' }
       types[:string][:limit] = 255
-      # types[:integer]     = { :name => 'INTEGER' }
-      # types[:float]       = { :name => 'FLOAT' }
-      # types[:decimal]     = { :name => 'DECIMAL' }
-      # types[:datetime]    = { :name => 'DATE' }
-      # types[:timestamp]   = { :name => 'DATE' }
-      # types[:time]        = { :name => 'DATE' }
-      # types[:date]        = { :name => 'DATE' }
-      # types[:binary]      = { :name => 'BYTE' }
-      # types[:boolean]     = { :name => 'BOOLEAN' }
       types
     end
 

@@ -1,13 +1,6 @@
 module ArJdbc
   module Altibase
 
-    ADAPTER_NAME = 'Altibase'.freeze
-
-    # @override
-    def adapter_name
-      ADAPTER_NAME
-    end
-
     module Column
 
       # Answer the mapping for SQL data types. Hard-coded numbers represent the values Altibase holds for data types.
