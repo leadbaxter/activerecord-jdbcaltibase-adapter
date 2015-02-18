@@ -8,6 +8,13 @@ module ArJdbc
       ::ActiveRecord::ConnectionAdapters::AltibaseJdbcConnection
     end
 
+    def rollback_database
+      begin @connection.execute_query 'DROP TABLE schema_migrations'; rescue; end
+      begin @connection.execute_query 'DROP TABLE users'; rescue; end
+      begin @connection.execute_query 'DROP SEQUENCE SEQ_USER_ID'; rescue; end
+      "there are now #{tables.count} tables, expected 33"
+    end
+
     # Quotes the column name. Defaults to no quoting.
     def quote_column_name(name)
       @connection.quote_column_name name
