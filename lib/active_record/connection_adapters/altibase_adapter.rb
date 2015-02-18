@@ -26,13 +26,6 @@ module ActiveRecord
       ::ActiveRecord::ConnectionAdapters::AltibaseColumn
     end
 
-    def rollback_database
-      begin @connection.execute_query 'DROP TABLE schema_migrations'; rescue; end
-      begin @connection.execute_query 'DROP TABLE users'; rescue; end
-      begin @connection.execute_query 'DROP SEQUENCE SEQ_USER_ID'; rescue; end
-      "there are now #{tables.count} tables, expected 33"
-    end
-
     class AltibaseColumn < JdbcColumn # :nodoc:
 
       # Maps Altibase-specific data types to logical Rails types.

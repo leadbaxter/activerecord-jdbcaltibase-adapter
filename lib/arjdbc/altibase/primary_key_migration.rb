@@ -2,7 +2,7 @@ module ArJdbc
   module Altibase
 
     # @todo - move to a better location for reuse
-    module PrimaryKeyMigration
+    class PrimaryKeyMigration < ActiveRecord::Migration
 
       def sequence_name(model_name)
         "seq_#{model_name}_id"
