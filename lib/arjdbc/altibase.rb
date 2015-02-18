@@ -1,5 +1,7 @@
 require 'jdbc/altibase'
 require 'arjdbc/jdbc'
 require 'arjdbc/altibase/column.rb'
+require 'arjdbc/altibase/primary_key_migration'
+require 'arjdbc/altibase/sequencer_sql'
 require 'arjdbc/altibase/adapter'
 require 'arjdbc/altibase/connection_methods'

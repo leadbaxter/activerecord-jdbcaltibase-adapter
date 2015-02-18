@@ -1,107 +1,22 @@
 module ArJdbc
   module Altibase
-
-    module SequencerSql
-      def username
-        config[:username]
-      end
-
-      def sequence_sql(name)
-        <<-SQL
-          CREATE SEQUENCE #{username}.SEQ_#{name.upcase}_ID
-          START WITH 1
-          MINVALUE 1
-          MAXVALUE 268435455
-          CYCLE;
-        SQL
-      end
-
-      def drop_sequence_sql(name)
-        "DROP SEQUENCE #{username}.SEQ_#{name.upcase}_ID;"
-      end
-
-      def procedure_sql(name)
-        <<-SQL
-          CREATE OR REPLACE PROCEDURE #{username}.AUTO_#{name.upcase}_ID(fld OUT NUMBER) IS
-          BEGIN
-          SELECT SEQ_#{name.upcase}_ID.NEXTVAL INTO FLD FROM DUAL;
-          END AUTO_#{name.upcase}_ID;
-        SQL
-      end
-
-      def drop_procedure_sql(name)
-        "DROP PROCEDURE #{username}.AUTO_#{name.upcase}_ID;"
-      end
-
-      def trigger_sql(name)
-        <<-SQL
-          CREATE OR REPLACE TRIGGER #{username}.#{name.upcase}_ID_TGR
-          BEFORE INSERT ON #{username}.#{name.pluralize.upcase}
-          REFERENCING NEW ROW AS NEW_ROW
-          FOR EACH ROW
-          AS
-          BEGIN
-          AUTO_#{name.upcase}_ID(NEW_ROW.ID);
-          END;
-        SQL
-      end
-
-      def drop_trigger_sql(name)
-        "DROP TRIGGER #{username}.#{name.upcase}_ID_TGR;"
-      end
-
-    end
-
-    # @todo - move to a better location for reuse
-    module PrimaryKeyMigration
-      def method_missing(method, *arguments, &block)
-        if /(add|drop)_(sequence|procedure|trigger)/.match method
-          name = arguments[0]
-          tag = {
-              sequence:  "seq_#{name}_id",
-              procedure: "auto_#{name}_id",
-              trigger:   "#{name}_id_tgr"
-          }[$2.to_sym]
-          prefix, message = $1 == 'add' ? ['adding', ''] : %w(dropping drop_)
-          say "#{prefix} #{$2}: #{tag}"
-          sql = raw_connection.send "#{message}#{$2}_sql", name
-          execute sql
-        else
-          super
-        end
-      end
-
-      def add_primary_key_fields(table_name)
-        name = table_name.to_s.singularize
-        reversible do |dir|
-          dir.up do
-            add_primary_key name
-          end
-
-          dir.down do
-            drop_primary_key name
-          end
-        end
-      end
-
-      def add_primary_key(name)
-        add_sequence name
-        #add_procedure name
-        #add_trigger name
-      end
-
-      def drop_primary_key(name)
-        begin drop_sequence  name; rescue; say 'ok - did not exist'; end
-        #begin drop_trigger   name; rescue; say 'ok - did not exist'; end
-        #begin drop_procedure name; rescue; say 'ok - did not exist'; end
-      end
-    end
-
     def self.jdbc_connection_class
       ::ActiveRecord::ConnectionAdapters::AltibaseJdbcConnection
     end
 
+    def jdbc_column_class
+      ::ActiveRecord::ConnectionAdapters::AltibaseColumn
+    end
+
     def self.included(obj)
+      Date::DATE_FORMATS[:db] = '%Y-%m-%d %H:%M:%S'
+    end
+
+    def clean_db
+      begin @connection.execute_query 'DROP TABLE schema_migrations'; rescue; end
+      begin @connection.execute_query 'DROP TABLE users'; rescue; end
+      begin @connection.execute_query 'DROP SEQUENCE SEQ_USER_ID'; rescue; end
+      "there are now #{tables.count} tables, expected 33"
     end
 
     # Quotes the column name. Defaults to no quoting.
@@ -144,17 +59,38 @@ module ArJdbc
     def modify_types(types)
       super(types)
       types[:primary_key] = { :name => 'INTEGER PRIMARY KEY' }
-      types[:string]      = { :name => 'VARCHAR', :limit => 255 }
-      types[:integer]     = { :name => 'INTEGER' }
-      types[:float]       = { :name => 'FLOAT' }
-      types[:decimal]     = { :name => 'DECIMAL' }
-      types[:datetime]    = { :name => 'DATE' }
-      types[:timestamp]   = { :name => 'DATE' }
-      types[:time]        = { :name => 'DATE' }
-      types[:date]        = { :name => 'DATE' }
-      types[:binary]      = { :name => 'BYTE' }
-      types[:boolean]     = { :name => 'BOOLEAN' }
+      types[:string][:limit] = 255
+      # types[:integer]     = { :name => 'INTEGER' }
+      # types[:float]       = { :name => 'FLOAT' }
+      # types[:decimal]     = { :name => 'DECIMAL' }
+      # types[:datetime]    = { :name => 'DATE' }
+      # types[:timestamp]   = { :name => 'DATE' }
+      # types[:time]        = { :name => 'DATE' }
+      # types[:date]        = { :name => 'DATE' }
+      # types[:binary]      = { :name => 'BYTE' }
+      # types[:boolean]     = { :name => 'BOOLEAN' }
       types
+    end
+
+    def quote(value, column = nil)
+      quoted_value = super
+      case value
+      when Date, Time
+        /^'(.+)'\Z/.match quoted_value
+        $1 || quoted_value
+      else
+        quoted_value
+      end
+    end
+
+    def quoted_date(date)
+      raw_date = false
+      if raw_date
+        date.to_s(:number)
+      else
+        str_date = date.to_s(:db)
+        "TO_DATE('#{str_date}', 'YYYY-MM-DD HH:MI:SS')"
+      end
     end
 
     # Executes an insert statement in the context of this connection.

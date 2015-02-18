@@ -10,6 +10,25 @@ module ActiveRecord
 
     end
 
+    class AltibaseColumn < JdbcColumn # :nodoc:
+
+      # Maps Altibase-specific data types to logical Rails types.
+      def simplified_type(field_type)
+        case field_type
+        when /bit|nibble|byte/i
+          :binary
+
+        # Altibase DATE stores the date and time to the second
+        when /date/i
+          :datetime
+
+        else
+          super
+        end
+      end
+
+    end
+
     class AltibaseJdbcConnection < JdbcConnection
 
       include ArJdbc::Altibase::SequencerSql
@@ -47,7 +66,16 @@ module ActiveRecord
       def remove_index(table_name, index_name) #:nodoc:
         execute "DROP INDEX #{quote_column_name(index_name)}"
       end
-
     end
+
+    def jdbc_connection_class(spec)
+      ::ArJdbc::Altibase.jdbc_connection_class
+    end
+
+    def jdbc_column_class
+      AltibaseColumn
+    end
+
+
   end
 end
