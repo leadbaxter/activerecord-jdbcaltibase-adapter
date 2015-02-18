@@ -50,9 +50,15 @@ module ActiveRecord
         super # configure_connection happens in super
       end
 
+      def altibase_version_string
+        database_version = connection.database_version
+        driver_version = connection.meta_data.driver_version
+        "Altibase database version: #{database_version} (Jdbc Driver version: #{driver_version})"
+      end
+
       def setup_connection_factory
         super
-        puts "Altibase database version: #{connection.database_version}"
+        puts altibase_version_string
       end
 
       def rollback_database
