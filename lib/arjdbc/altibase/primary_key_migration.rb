@@ -1,22 +1,31 @@
 module ArJdbc
   module Altibase
+
     # @todo - move to a better location for reuse
     module PrimaryKeyMigration
-      def method_missing(method, *arguments, &block)
-        if /(add|drop)_(sequence|procedure|trigger)/.match method
-          name = arguments[0]
-          tag = {
-              sequence:  "seq_#{name}_id",
-              procedure: "auto_#{name}_id",
-              trigger:   "#{name}_id_tgr"
-          }[$2.to_sym]
-          prefix, message = $1 == 'add' ? ['adding', ''] : %w(dropping drop_)
-          say "#{prefix} #{$2}: #{tag}"
-          sql = raw_connection.send "#{message}#{$2}_sql", name
-          execute sql
-        else
-          super
-        end
+
+      def sequence_name(model_name)
+        "seq_#{model_name}_id"
+      end
+
+      def trigger_name(model_name)
+        "#{model_name}_id_tgr"
+      end
+
+      def procedure_name(model_name)
+        "auto_#{model_name}_id"
+      end
+
+      def add_sequence(name)
+        say "adding sequence: #{sequence_name name}"
+        sql = raw_connection.create_sequence_sql name
+        execute sql
+      end
+
+      def drop_sequence(name)
+        say "dropping sequence: #{sequence_name name}"
+        sql = raw_connection.drop_sequence_sql name
+        execute sql
       end
 
       def add_primary_key_fields(table_name)

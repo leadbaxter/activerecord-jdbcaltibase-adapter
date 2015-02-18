@@ -5,7 +5,7 @@ module ArJdbc
         config[:username]
       end
 
-      def sequence_sql(name)
+      def create_sequence_sql(name)
         <<-SQL
           CREATE SEQUENCE #{username}.SEQ_#{name.upcase}_ID
           START WITH 1
@@ -19,7 +19,7 @@ module ArJdbc
         "DROP SEQUENCE #{username}.SEQ_#{name.upcase}_ID;"
       end
 
-      def procedure_sql(name)
+      def create_procedure_sql(name)
         <<-SQL
           CREATE OR REPLACE PROCEDURE #{username}.AUTO_#{name.upcase}_ID(fld OUT NUMBER) IS
           BEGIN
@@ -32,7 +32,7 @@ module ArJdbc
         "DROP PROCEDURE #{username}.AUTO_#{name.upcase}_ID;"
       end
 
-      def trigger_sql(name)
+      def create_trigger_sql(name)
         <<-SQL
           CREATE OR REPLACE TRIGGER #{username}.#{name.upcase}_ID_TGR
           BEFORE INSERT ON #{username}.#{name.pluralize.upcase}
