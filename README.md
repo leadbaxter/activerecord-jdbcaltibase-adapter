@@ -5,10 +5,12 @@ and is only intended for use with JRuby.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add the following to your application's Gemfile:
 
 ```ruby
-gem 'activerecord-jdbcaltibase-adapter', :git => 'https://github.com/leadbaxter/activerecord-jdbcaltibase-adapter.git', platform: :jruby
+# Use jdbcaltibase for Active Record
+gem 'jdbc-altibase', :github => 'leadbaxter/jdbc-altibase', platform: :jruby
+gem 'activerecord-jdbcaltibase-adapter', :github => 'leadbaxter/activerecord-jdbcaltibase-adapter', platform: :jruby
 ```
 
 And then execute:
