@@ -57,6 +57,13 @@ end
 ```ruby
   add_primary_key :users
 ```
+### In summary:
+1. For ActiveRecord model:
+   - assign the ```self.sequence_name```
+
+2. For any migration classes you create:
+   - Change the base class from ```ActiveRecord::Migration``` to ```ActiveRecord::Altibase::Migration```
+   - Add the primary key using ```add_primary_key :model_name```
 
 ## Contributing
 
