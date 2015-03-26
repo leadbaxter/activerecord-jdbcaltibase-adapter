@@ -27,6 +27,7 @@ Or install it yourself as:
 class User < ActiveRecord::Base
   self.sequence_name = 'SEQ_USER_ID'
 end
+```
 
 ### Add support for migrations
 
