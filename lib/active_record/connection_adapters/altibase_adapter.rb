@@ -16,6 +16,11 @@ module ActiveRecord
         ADAPTER_NAME
       end
 
+      # @override
+      def active
+        begin !!database_name; rescue; false; end
+      end
+
     end
 
     def jdbc_connection_class(spec)
