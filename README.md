@@ -48,12 +48,12 @@ class CreateUsers < ActiveRecord::Altibase::Migration
 end
 ```
 
-Notice specifically the Migration class extends
+#### Notice specifically the Migration class extends the provided Altibase implementation
 ```ruby
   ActiveRecord::Altibase::Migration
 ```
 
-Finally, the following line is required:
+#### Finally, the following line is required:
 ```ruby
   add_primary_key :users
 ```
